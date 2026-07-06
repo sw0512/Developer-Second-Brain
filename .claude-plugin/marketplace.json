@@ -1,0 +1,19 @@
+{
+  "name": "developer-second-brain",
+  "owner": {
+    "name": "Snagwoo",
+    "email": "kimsu3047@gmail.com"
+  },
+  "metadata": {
+    "description": "Developer Second Brain — a Personal Knowledge Management framework for Claude Code that turns development experience into a lasting asset.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "developer-second-brain",
+      "source": "./",
+      "description": "Documentation Engineer skill: judges what is worth recording, scores its value, and — with your approval — writes Korean engineering docs (Troubleshooting, ADR, TIL, Retrospective, Resume Material, Study Note) into your knowledge vault.",
+      "category": "productivity"
+    }
+  ]
+}

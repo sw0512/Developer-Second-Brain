@@ -1,0 +1,20 @@
+{
+  "name": "developer-second-brain",
+  "version": "0.1.0",
+  "description": "Turn your development experience into a durable asset. A Documentation Engineer for Claude Code that captures troubleshooting, technical decisions, and learnings into your personal knowledge vault — never auto-saving, always with your approval.",
+  "author": {
+    "name": "Snagwoo",
+    "email": "kimsu3047@gmail.com"
+  },
+  "homepage": "https://github.com/Snagwoo/Developer-Second-Brain",
+  "repository": "https://github.com/Snagwoo/Developer-Second-Brain",
+  "license": "MIT",
+  "keywords": [
+    "pkm",
+    "second-brain",
+    "documentation",
+    "knowledge-management",
+    "interview-prep",
+    "portfolio"
+  ]
+}

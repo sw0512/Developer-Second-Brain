@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# Claude Code local session settings
+.claude/settings.local.json
+
+# Local vault (in case a user points SECOND_BRAIN_VAULT into the repo)
+/vault/
