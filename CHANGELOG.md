@@ -6,6 +6,25 @@ the roadmap versions in `docs/roadmap.md`.
 
 ## [Unreleased]
 
+### Added — v0.2 Documentation Detection Engine (per docs/design/v0.2-detection-engine.md)
+- Evidence / Assessment separation with the purpose-independence invariant: Evidence holds
+  observed, purpose-independent facts; the derived `documentation` Assessment holds the
+  judgments (importance, confidence, classification, explanation).
+- `references/interruption-policy.md` — 3-level confidence + propose/hold/silent decision table,
+  vault de-duplication, and per-session cooldown.
+- `tests/` — behavioral evaluation harness: README + 14 labeled fixtures (heavy on hard
+  negatives), labeling Evidence and Assessment separately.
+
+### Changed — v0.2
+- `SKILL.md` workflow integrated with the 6-stage detection pipeline (gate → Evidence →
+  Assessment → interruption decision → propose → write), staying a thin orchestrator.
+- `references/detection-rules.md` rewritten into the eligibility gate + signal taxonomy +
+  Evidence object (with guardrails) + "≥2 signals" and "resolution-required" rules.
+- `references/importance-score.md` sharpened with calibration anchors, scoring from Evidence as
+  part of the Assessment.
+- Templates now carry `evidence:` and `assessment:` frontmatter; the loose `type`/`importance`
+  fields were relocated into the Assessment (no duplication).
+
 ### Added
 - `PROJECT_PRINCIPLES.md` — constitutional document defining the long-term architectural
   philosophy and non-negotiable principles.

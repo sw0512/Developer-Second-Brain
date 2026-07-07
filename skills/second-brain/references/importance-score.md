@@ -1,34 +1,49 @@
-# Importance Score — Rating a record's value
+# Importance Score — the value judgment of the documentation Assessment
 
-Assign a ⭐1–5 score. This drives how strongly you recommend recording, and later
-(future versions) feeds the Resume Score.
+This reference drives the **importance** field of the `documentation` Assessment (pipeline
+stage ③). It reads the **Evidence object** (`detection-rules.md`) — the contributing signals and
+resolution — and does **not** re-inspect the raw conversation. Importance is a judgment; it
+lives in the Assessment, never in Evidence.
 
-| Score | Meaning | Your action |
-|-------|---------|-------------|
-| ⭐ | Not worth recording | Stay silent |
+## Scoring method
+
+Rubric-anchored holistic judgment: score holistically, but constrained by explicit dimensions
+and calibration anchors so ⭐ levels mean the same thing every time. **No numeric per-signal
+weighting** — that would be false precision. Weigh the Evidence qualitatively.
+
+| Score | Meaning | Recommendation strength |
+|-------|---------|-------------------------|
+| ⭐ | Not worth recording | — (stay silent) |
 | ⭐⭐ | Minor — a short TIL at most | Offer briefly, don't push |
-| ⭐⭐⭐ | Worth saving | Recommend recording |
+| ⭐⭐⭐ | Worth saving | Recommend |
 | ⭐⭐⭐⭐ | Strongly worth saving | Actively recommend |
 | ⭐⭐⭐⭐⭐ | Must save — high interview/portfolio value | Strongly recommend |
 
-## Scoring dimensions
+## Dimensions (weigh from the Evidence signals)
 
-Weigh these to land on a score:
+1. **Difficulty** — how hard was the problem/decision? (signal B)
+2. **Reusability** — will it recur or teach a transferable lesson? (signals B/D)
+3. **Interview value** — does it answer "왜 X를 선택했나요?" style questions? (signals C/E)
+4. **Portfolio value** — measurable impact or notable skill? (signals E, esp. performance)
+5. **Decision content** — a real trade-off navigated vs. a mechanical fix? (signal C)
 
-1. **Difficulty** — how hard was the problem / decision? (obvious → non-obvious → deep)
-2. **Reusability** — will this recur, or teach a transferable lesson?
-3. **Interview value** — does it answer "왜 X를 선택했나요?" style questions?
-4. **Portfolio value** — does it demonstrate measurable impact or notable skill?
-5. **Decision content** — was a real trade-off navigated (vs. a mechanical fix)?
+## Calibration anchors (map Evidence → score)
 
-## Calibration examples
+- **⭐** — no substantive signals; gate-adjacent. *e.g.* renamed a variable.
+- **⭐⭐** — a single `novelty` signal, small and self-contained. *e.g.* learned a new `git`
+  flag. `resolution: confirmed` but low reuse.
+- **⭐⭐⭐** — one solid signal with real substance, or two weak ones. *e.g.* `difficulty` +
+  `resolution: confirmed` on a flaky test caused by a timezone assumption.
+- **⭐⭐⭐⭐** — a strong signal mix, typically `decision` or `difficulty` **plus** `domain`.
+  *e.g.* chose Redis over in-memory for refresh tokens with clear reasons (`decision` +
+  `domain`), or a measured performance win (`domain=performance` + `resolution`).
+- **⭐⭐⭐⭐⭐** — multiple strong corroborating signals in a high-value domain with confirmed
+  resolution and clear interview/portfolio value. *e.g.* designed JWT + refresh rotation and
+  solved a release-blocking 401 loop (`difficulty` + `decision` + `domain=auth` + `resolution:
+  confirmed`).
 
-- Fixing a typo in a variable name → ⭐
-- Learning a new `git` flag → ⭐⭐ (TIL)
-- Debugging a flaky test caused by a timezone assumption → ⭐⭐⭐
-- Choosing Redis over in-memory cache for refresh-token storage, with reasoning → ⭐⭐⭐⭐
-- Designing the auth architecture (JWT + refresh rotation) and solving a 401 loop that
-  blocked release → ⭐⭐⭐⭐⭐
+## Output
 
-Always state the score with a **one-line Korean rationale** in the proposal, e.g.
-`중요도: ⭐⭐⭐⭐ (기술 선택의 근거가 명확해 면접 소재로 강함)`.
+Set the Assessment's `importance` (⭐1–5). The user-facing one-line reason is the Assessment's
+`explanation`, **rendered from the Evidence signals** (see `interruption-policy.md` and the
+skill workflow) — do not compose a separate rationale here.

@@ -17,58 +17,72 @@ then you propose it and, only on approval, you write it.
 **Never save automatically. Always get explicit user approval before writing any file.**
 Quality over quantity. A small vault of high-value docs beats a large vault of noise.
 
-## Workflow
+## Workflow — the Detection Engine
 
-Run these steps in order.
+Run these stages in order. Each reference holds the detail; keep this file thin. The engine
+produces two artifacts:
 
-### 1. Judge whether this is worth recording
+- **Evidence** — observed, **purpose-independent facts** (which signals fired, resolution,
+  explicit request, negatives). No evaluation.
+- **Assessment** — the judgments **derived from Evidence** for `purpose: documentation`
+  (importance, confidence, classification, explanation).
 
-Read `references/detection-rules.md`. If the work clearly falls under "do not record"
-(typo, cosmetic CSS, trivial syntax question, tiny change), **stop silently** — do not
-nag the user. Only proceed when there is real engineering substance.
+Invariant: never put a judgment in Evidence; never introduce in the Assessment a fact that is
+not in Evidence. The test for Evidence is *purpose-independence* — would this observation be the
+same whether documenting, building a resume, or prepping an interview?
 
-### 2. Select the documentation type
+### 1. Gate, then build Evidence  (pipeline stages ①–②)
 
-Read `references/doc-types.md` and pick the best-fit type:
-`troubleshooting` · `adr` · `til` · `retrospective` · `resume-material` · `study-note`.
-If two types fit, prefer the one with higher long-term value (usually `troubleshooting`
-or `adr` over `til`).
+Read `references/detection-rules.md`. Apply the eligibility gate first: if the work is a typo,
+cosmetic CSS, a trivial syntax question, or a tiny change, **stop silently** — do not nag.
+Otherwise extract the **Evidence object**: the signals that fired (each with a one-line factual
+support), the `resolution` state, `explicit_request`, and any `negatives`. Facts only.
 
-### 3. Compute the Importance Score
+### 2. Derive the Assessment  (stages ③–④–⑥)
 
-Read `references/importance-score.md` and assign a ⭐1–5 score with a one-line rationale.
-- ⭐ / ⭐⭐ → mention briefly, do not push. Offer only a short TIL at most.
-- ⭐⭐⭐ and above → actively recommend recording.
+From the Evidence — not by re-reading the conversation — derive the documentation Assessment:
+- **Importance** ⭐1–5 per `references/importance-score.md`.
+- **Confidence** low/medium/high per `references/interruption-policy.md`.
+- **Classification** (type + alternates) per `references/doc-types.md`.
+- **Explanation** — a one-line Korean "왜 기록 가치가 있는지", **rendered from** the Evidence
+  signals, never written independently.
 
-### 4. Propose to the user (in Korean)
+### 3. Decide whether to interrupt  (stage ⑤)
 
-Present a compact proposal and ask for approval. Example:
+Apply `references/interruption-policy.md`: combine importance × confidence × timing, honoring the
+explicit-request bypass, the "≥2 signals" rule, vault de-duplication, and the per-session
+cooldown. Outcome is **propose**, **hold** (re-evaluate at the next natural boundary), or
+**stay silent**.
+
+### 4. Propose to the user (in Korean) — only when the policy says "propose"
+
+Present a compact proposal and ask for approval. The 중요도 line and the one-line reason come
+from the Assessment (its explanation rendered from Evidence), so they cannot disagree:
 
 ```
 📌 기록할 가치가 있어 보여요.
 
   유형:      Troubleshooting
   제목:      JWT Refresh Token 재발급 시 401 무한루프 해결
-  중요도:    ⭐⭐⭐⭐ (면접·포트폴리오 소재로 가치 높음)
+  중요도:    ⭐⭐⭐⭐ (여러 번의 시도 끝에 원인 규명 + 인증 도메인)
   저장 위치:  ~/DeveloperSecondBrain/troubleshooting/2026-07-06-jwt-refresh-401-loop.md
 
 기록할까요? (y / 수정 / 취소)
 ```
 
-Wait for the user. If they decline, drop it gracefully. If they want changes, adjust type,
-title, or scope and re-propose.
+Wait for the user. If they decline, drop it and respect the cooldown. If they want changes,
+adjust and re-propose.
 
-### 5. Write the document (only after approval)
+### 5. Write the document (only after approval)  (handoff, pipeline stage ⑥)
 
-- Load the matching template from this skill's own templates directory:
-  `templates/<type>.md` relative to this skill file (e.g. `templates/troubleshooting.md`).
-  (Templates live inside the skill so a single symlink into `~/.claude/skills/` works.)
-- Fill it in **Korean**, using the actual conversation as the source of truth. Be concrete:
-  real error messages, real decisions, real trade-offs. Do not invent details.
-- Persist it by following `references/vault-layout.md`, which is the **single source of truth**
-  for *where* documents live and *how* they are named. Do not restate storage paths, defaults,
-  or filename rules here — keeping them in that one reference is what lets the backend change
-  (local today, Notion later) without editing this skill.
+- Load `templates/<type>.md` relative to this skill (e.g. `templates/troubleshooting.md`).
+- Fill it in **Korean** from the actual conversation. Be concrete: real errors, decisions,
+  trade-offs. Do not invent details.
+- Record the **Evidence** and this documentation **Assessment** into the document's frontmatter
+  (the template provides `evidence:` and `assessment:` blocks). Store only the `documentation`
+  Assessment — other purposes are computed later, not now.
+- Persist by following `references/vault-layout.md`, the **single source of truth** for where
+  documents live and how they are named. Do not restate storage paths or filename rules here.
 - Confirm to the user with the final saved location.
 
 ## Language convention

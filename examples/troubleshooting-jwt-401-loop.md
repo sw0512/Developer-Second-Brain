@@ -1,9 +1,31 @@
 ---
-type: troubleshooting
 title: "JWT Refresh Token 재발급 시 401 무한루프 해결"
 date: 2026-07-06
-importance: ⭐⭐⭐⭐
 tags: [JWT, Spring Security, Refresh Token, 인증]
+
+# Evidence — observed, purpose-independent facts
+evidence:
+  contributing_signals:
+    - group: difficulty
+      support: "여러 번의 시도 끝에 필터 체인이 /auth/refresh에도 인증을 요구한다는 원인 규명"
+    - group: decision
+      support: "/auth/refresh를 permitAll 예외로 분리, refresh token만으로 검증하도록 결정"
+    - group: domain
+      support: "인증 / 세션 보안"
+  resolution: confirmed
+  explicit_request: false
+  negatives: []
+
+# Assessment — judgments derived from Evidence for this purpose
+assessment:
+  purpose: documentation
+  should_document: true
+  importance: "⭐⭐⭐⭐"
+  confidence: high
+  classification:
+    type: troubleshooting
+    alternates: [adr]
+  explanation: "여러 번의 시도 끝에 원인 규명 + 인증 도메인 (릴리스 blocker 해결)"
 ---
 
 # JWT Refresh Token 재발급 시 401 무한루프 해결
