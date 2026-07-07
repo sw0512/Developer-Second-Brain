@@ -104,7 +104,7 @@ generation (v0.5), and the full Second Brain — knowledge graph and reports (v1
 ## Install
 
 ```bash
-/plugin marketplace add Snagwoo/Developer-Second-Brain
+/plugin marketplace add sw0512/Developer-Second-Brain
 /plugin install developer-second-brain
 ```
 
