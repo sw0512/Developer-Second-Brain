@@ -58,7 +58,9 @@ To test the real distribution path instead:
 
 Adding a type (e.g. `postmortem`) touches four places — keep them in sync:
 
-1. `skills/second-brain/templates/<type>.md` — the Korean template (with frontmatter).
+1. `skills/second-brain/templates/<type>.md` — the Korean template (with frontmatter). If the
+   type carries code or tuned values, inline the `references/writing-rules.md` reminders
+   (real constant values, number rationale) the way `troubleshooting.md` does.
 2. `skills/second-brain/references/doc-types.md` — add a row + when-to-use guidance.
 3. `skills/second-brain/references/vault-layout.md` — add the type → folder mapping.
 4. `skills/second-brain/SKILL.md` — add the type to the list in step 2 of the workflow.

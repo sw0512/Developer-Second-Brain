@@ -128,6 +128,9 @@ Claude Code의 **Skill**은 특정 상황에서 Claude에게 부여되는 역할
 2. **판단 · 점수** — `references/`의 규칙을 읽어 기록 가치를 판단하고, 유형을 고르고, ⭐ 점수를 매깁니다.
 3. **제안** — 한국어로 "이거 기록할까요?"를 묻습니다. **승인 없이는 절대 저장하지 않습니다.**
 4. **작성** — 승인하면 해당 유형의 템플릿을 채워 vault에 Markdown으로 저장합니다.
+5. **자체 검수** — 저장한 문서를 다시 읽고 `references/writing-rules.md`의 체크리스트로 스스로
+   점검합니다. 상수에 실제 값이 있는지, 튜닝 숫자에 근거가 붙었는지, 표기가 일관된지 —
+   *"6개월 뒤 이 문서만 보고 재현할 수 있는가"* 를 통과해야 완료입니다.
 
 SKILL.md는 얇은 **오케스트레이터**이고, 세부 판단 기준은 `references/`에 분리돼 필요할 때만
 읽힙니다. 덕분에 규칙을 늘려도 프롬프트가 비대해지지 않습니다.
@@ -140,7 +143,7 @@ SKILL.md는 얇은 **오케스트레이터**이고, 세부 판단 기준은 `ref
 Developer-Second-Brain/
 ├── .claude-plugin/        # 플러그인 매니페스트 + 마켓플레이스
 ├── skills/second-brain/   # 핵심 스킬 (Documentation Engineer, 자기 완결적)
-│   ├── references/        #   탐지 규칙 · 중요도 점수 · 유형 · vault 레이아웃
+│   ├── references/        #   탐지 규칙 · 중요도 점수 · 유형 · 작성 규칙 · vault 레이아웃
 │   └── templates/         #   유형별 한국어 문서 템플릿 (스킬이 소유 → 심링크 1개로 동작)
 ├── commands/              # /document 슬래시 명령 (플러그인 설치 시)
 ├── scripts/               # install-dev.sh / uninstall-dev.sh (심링크 개발 설치)
