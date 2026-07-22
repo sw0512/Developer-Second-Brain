@@ -2,7 +2,7 @@
 
 각 버전은 이전 버전의 구조를 깨지 않고 확장합니다.
 
-## v0.1 — Documentation Skill  ✅ (현재)
+## v0.1 — Documentation Skill  ✅
 - `second-brain` 스킬: 판단 → 유형 선택 → ⭐ 점수 → 제안 → (승인 시) 작성.
 - 6종 한국어 템플릿, `/document` 명령.
 - 로컬 Markdown vault 출력 (`~/DeveloperSecondBrain/`).
@@ -16,9 +16,12 @@
 - Notion MCP 연동. vault → Notion Developer Wiki 동기화.
 - 유형별 Notion DB 매핑, 저장소 추상화(local ↔ Notion) 확정.
 
-## v0.4 — Hooks
-- `Stop` 등 이벤트 훅으로 자동 "기록할까요?" 판단 부착.
+## v0.4 — Hooks  ✅ (현재)
+- `Stop` 훅으로 자동 "기록할까요?" 판단 부착 (`hooks/detect-on-stop.sh`).
+- 훅은 "작업이 일어났나"만 값싸게 판정하고, 가치 판단은 `references/`가 단독으로 수행.
 - 여전히 자동 저장은 하지 않음 (제안까지만 자동).
+- 순서 변경: v0.3(Notion)보다 먼저 진행. Notion 동기화는 문서가 쌓여야 의미가 있는데,
+  제안이 뜨지 않아 애초에 문서가 쌓이지 않는 상태였음.
 
 ## v0.5 — Resume Material
 - STAR 확장 강화, Resume Score(0–100) 산출.
