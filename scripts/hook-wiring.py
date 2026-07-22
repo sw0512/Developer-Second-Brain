@@ -24,7 +24,7 @@ from pathlib import Path
 # real configuration — this script is the one place that rewrites it.
 SETTINGS = Path(os.environ.get("SECOND_BRAIN_SETTINGS",
                                Path.home() / ".claude" / "settings.json"))
-MARKER = "detect-on-stop.sh"  # identifies entries owned by this project
+MARKER = "detect-on-"  # identifies entries owned by this project (any hook script)
 
 
 def load() -> dict:
@@ -56,21 +56,38 @@ def strip_ours(stop_entries: list) -> list:
     return kept
 
 
+def _write_events(data: dict, remaining: dict) -> None:
+    """Put back each swept event, dropping keys that ended up empty."""
+    for ev, kept in remaining.items():
+        if kept:
+            data.setdefault("hooks", {})[ev] = kept
+        else:
+            data.get("hooks", {}).pop(ev, None)
+    if not data.get("hooks"):
+        data.pop("hooks", None)
+
+
 def main() -> None:
     if len(sys.argv) < 2 or sys.argv[1] not in ("add", "remove"):
         sys.exit("usage: hook-wiring.py add <script-path> | remove")
 
     action = sys.argv[1]
     data = load()
-    stop = data.get("hooks", {}).get("Stop", [])
-    if not isinstance(stop, list):
-        sys.exit("❌ hooks.Stop in settings.json is not a list — leaving it untouched.")
+    # v0.4 registered a Stop hook; v0.4.1 uses PostToolUse. Both events are swept so an
+    # upgrade removes the old registration instead of leaving it firing alongside the new one.
+    events = ("PostToolUse", "Stop")
+    for ev in events:
+        if not isinstance(data.get("hooks", {}).get(ev, []), list):
+            sys.exit(f"❌ hooks.{ev} in settings.json is not a list — leaving it untouched.")
 
-    remaining = strip_ours(stop)
-    had_ours = len(remaining) != len(stop) or any(
-        MARKER in str(h.get("command", ""))
-        for e in stop for h in e.get("hooks", [])
-    )
+    had_ours = False
+    remaining = {}
+    for ev in events:
+        entries = data.get("hooks", {}).get(ev, [])
+        kept = strip_ours(entries)
+        if any(MARKER in str(h.get("command", "")) for e in entries for h in e.get("hooks", [])):
+            had_ours = True
+        remaining[ev] = kept
 
     if action == "add":
         if len(sys.argv) < 3:
@@ -79,29 +96,24 @@ def main() -> None:
         # the hook still runs if a checkout or copy drops the permission. Matches how the
         # first-party plugins register their hooks.
         script = str(Path(sys.argv[2]).resolve())
-        remaining.append({
+        remaining["PostToolUse"].append({
+            "matcher": "Edit|Write|NotebookEdit",
             "hooks": [{
                 "type": "command",
                 "command": f'bash "{script}"',
                 "timeout": 10,
-                "statusMessage": "기록 가치 판단 중...",
             }]
         })
-        data.setdefault("hooks", {})["Stop"] = remaining
+        _write_events(data, remaining)
         save(data)
-        print(f"✅ Stop hook {'updated' if had_ours else 'added'}: {script}")
+        print(f"✅ PostToolUse hook {'updated' if had_ours else 'added'}: {script}")
     else:
         if not had_ours:
-            print("ℹ️  No Second Brain Stop hook in settings.json — nothing to do.")
+            print("ℹ️  No Second Brain hook in settings.json — nothing to do.")
             return
-        if remaining:
-            data.setdefault("hooks", {})["Stop"] = remaining
-        else:
-            data.get("hooks", {}).pop("Stop", None)
-            if not data.get("hooks"):
-                data.pop("hooks", None)
+        _write_events(data, remaining)
         save(data)
-        print("✅ Stop hook removed.")
+        print("✅ Hook removed.")
 
 
 if __name__ == "__main__":

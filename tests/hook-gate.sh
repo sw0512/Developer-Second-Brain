@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
 #
-# Regression tests for hooks/detect-on-stop.sh
+# Regression tests for hooks/detect-on-edit.sh
 #
 # The fixtures in tests/fixtures/ evaluate the *engine's judgment* (is this worth recording?).
-# This file tests the layer underneath: the Stop hook's cheap gate — does it fire only when a
-# session plausibly contained development work, and does it stay silent on everything else?
+# This file tests the layer underneath: the hook's cheap gate — does it arm only when a session
+# plausibly contained development work, and does it stay silent on everything else?
 #
-# The rule under test is asymmetric, and so are the cases: firing wrongly costs the user an
-# interruption, but *failing silently in the wrong way* (a crash, a stderr leak, an infinite
-# stop loop) breaks their session. Most cases below are therefore negative.
+# The rule under test is asymmetric, and so are the cases: arming wrongly costs the user a
+# little model attention, but *failing in the wrong way* (a crash, a stderr leak, a user-visible
+# message) breaks or pollutes their session. Most cases below are therefore negative.
+#
+# The v0.4 Stop-hook design died on exactly one of these: it was correct and still unusable,
+# because its output channel was rendered to the user. "Never emits a user-visible channel" is
+# now an assertion, not a design intention.
 #
 # Usage:  ./tests/hook-gate.sh          (exit 0 = all pass)
 
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-HOOK="$REPO_ROOT/hooks/detect-on-stop.sh"
+HOOK="$REPO_ROOT/hooks/detect-on-edit.sh"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -24,8 +28,10 @@ export SECOND_BRAIN_STATE_DIR="$TMP/state"
 pass=0
 fail=0
 
-# jsonl <file> <count> <tool-name-or-"text"> [override-index] [override-tool]
-# Synthesizes a transcript of <count> lines, each carrying one tool_use (or plain text).
+ok()   { printf '  ✅ %-46s %s\n' "$1" "${2:-ok}";   pass=$((pass + 1)); }
+bad()  { printf '  ❌ %-46s %s\n' "$1" "${2:-}";     fail=$((fail + 1)); }
+
+# jsonl <file> <count> <tool-or-"text"> [override-index] [override-tool]
 jsonl() {
   python3 - "$@" <<'PY'
 import json, sys
@@ -41,37 +47,17 @@ with open(path, "w") as f:
 PY
 }
 
-# check <expect: fire|silent> <label> <stdin-json>
-# Captures stdout AND stderr: a hook that "works" but leaks an error message to the terminal
-# is a user-visible defect, so stderr noise fails the test too.
-check() {
-  local expect="$1" label="$2" payload="$3"
-  local out
-  out=$(printf '%s' "$payload" | bash "$HOOK" 2>&1)
-  local got="silent"; [ -n "$out" ] && got="fire"
-  if [ "$got" = "$expect" ]; then
-    printf '  ✅ %-42s %s\n' "$label" "$expect"
-    pass=$((pass + 1))
-  else
-    printf '  ❌ %-42s expected %s, got %s\n' "$label" "$expect" "$got"
-    [ -n "$out" ] && printf '     output: %.160s\n' "$out"
-    fail=$((fail + 1))
-  fi
-}
-
-payload() { printf '{"session_id":"%s","transcript_path":"%s","stop_hook_active":%s}' "$1" "$2" "${3:-false}"; }
-
-# Real transcripts are not uniform: they interleave non-message bookkeeping (snapshots, hook
-# records, attachments) with messages, and a message's content may be a bare string rather than
-# a content-block array. Both shapes broke earlier versions of the gate, so both are fixtures.
+# Real transcripts interleave non-message bookkeeping (snapshots, hook records, attachments)
+# with messages, and a message's content may be a bare string. Both shapes broke earlier
+# versions of the gate, so both are fixtures.
 mixed_transcript() {
   python3 - "$1" <<'PY'
 import json, sys
 with open(sys.argv[1], "w") as f:
-    for i in range(40):                      # bookkeeping lines — carry no .message
-        f.write(json.dumps({"type": "snapshot", "uuid": f"u{i}", "cwd": "/tmp"}) + "\n")
-    for i in range(5):                       # only 5 real messages, one of them an edit
-        block = ({"type": "tool_use", "name": "Edit"} if i == 2
+    for i in range(40):                      # bookkeeping — carries no .message
+        f.write(json.dumps({"type": "snapshot", "uuid": f"u{i}"}) + "\n")
+    for i in range(5):                       # only 5 real messages, 3 of them edits
+        block = ({"type": "tool_use", "name": "Edit"} if i < 3
                  else {"type": "text", "text": "hi"})
         f.write(json.dumps({"message": {"content": [block]}}) + "\n")
 PY
@@ -81,85 +67,96 @@ string_content_transcript() {
   python3 - "$1" <<'PY'
 import json, sys
 with open(sys.argv[1], "w") as f:
-    for i in range(30):
+    for _ in range(30):
         f.write(json.dumps({"message": {"content": "plain string content"}}) + "\n")
     for _ in range(3):
         f.write(json.dumps({"message": {"content": [{"type": "tool_use", "name": "Edit"}]}}) + "\n")
 PY
 }
 
-echo "hook gate — fires only on real development work"
+payload() { printf '{"transcript_path":"%s","cwd":"%s"}' "$1" "${2:-/proj/default}"; }
 
-jsonl "$TMP/work.jsonl"     40 Read 5 Edit    # substantial session, one real edit
-jsonl "$TMP/shell.jsonl"    40 Bash           # pure-debugging session, heavy shell
-jsonl "$TMP/qa.jsonl"       40 text           # conversation only, no tools
-jsonl "$TMP/readonly.jsonl" 40 Read           # exploration only, nothing changed
-jsonl "$TMP/short.jsonl"     4 Read 1 Edit    # real edit but a trivially short session
+# check <expect: arm|silent> <label> <stdin-json>
+# Captures stdout AND stderr: a hook that works but leaks to the terminal is a user-visible
+# defect, so stderr noise fails too.
+check() {
+  local expect="$1" label="$2" data="$3" out got
+  out=$(printf '%s' "$data" | bash "$HOOK" 2>&1)
+  got="silent"; [ -n "$out" ] && got="arm"
+  if [ "$got" = "$expect" ]; then ok "$label" "$expect"
+  else bad "$label" "expected $expect, got $got"; [ -n "$out" ] && printf '     %.150s\n' "$out"; fi
+}
+
+echo "hook gate — arms only on real development work"
+
+jsonl "$TMP/work.jsonl"     40 Read 5 Edit    # 40 messages, 1 edit
+jsonl "$TMP/edits.jsonl"    40 Edit           # plenty of edits
+jsonl "$TMP/qa.jsonl"       40 text           # conversation only
+jsonl "$TMP/readonly.jsonl" 40 Read           # exploration only
+jsonl "$TMP/short.jsonl"     6 Edit           # edits but too short a session
 
 echo
-echo "  positive — work happened"
-check fire   "edit in a substantial session"      "$(payload s-edit  "$TMP/work.jsonl")"
-check fire   "heavy shell use (debugging)"        "$(payload s-shell "$TMP/shell.jsonl")"
+echo "  positive — sustained editing work"
+check arm    "many edits in a substantial session"  "$(payload "$TMP/edits.jsonl" /p/a)"
 
 echo
 echo "  negative — no work, or not enough of it"
-check silent "conversation only, zero tools"      "$(payload s-qa   "$TMP/qa.jsonl")"
-check silent "read-only exploration"              "$(payload s-ro   "$TMP/readonly.jsonl")"
-check silent "edit but session too short"         "$(payload s-sh   "$TMP/short.jsonl")"
+check silent "one stray edit (below MIN_EDITS)"     "$(payload "$TMP/work.jsonl" /p/b)"
+check silent "conversation only, zero tools"        "$(payload "$TMP/qa.jsonl" /p/c)"
+check silent "read-only exploration"                "$(payload "$TMP/readonly.jsonl" /p/d)"
+check silent "edits but session too short"          "$(payload "$TMP/short.jsonl" /p/e)"
 
 echo
 echo "  real-transcript shapes"
 mixed_transcript "$TMP/mixed.jsonl"
 string_content_transcript "$TMP/strcontent.jsonl"
-# 45 raw lines but only 5 messages: counting lines instead of messages would wrongly fire here.
-check silent "bookkeeping lines don't count as messages" "$(payload s-mix "$TMP/mixed.jsonl")"
-check fire   "string-typed message content survives"     "$(payload s-str "$TMP/strcontent.jsonl")"
+# 45 raw lines but only 5 messages: counting lines instead of messages would wrongly arm here.
+check silent "bookkeeping lines aren't messages"    "$(payload "$TMP/mixed.jsonl" /p/f)"
+check arm    "string-typed message content"         "$(payload "$TMP/strcontent.jsonl" /p/g)"
 
 echo
 echo "  safety — must never break the session"
-check silent "loop guard (stop_hook_active)"      "$(payload s-loop "$TMP/work.jsonl" true)"
-check silent "missing transcript file"            "$(payload s-gone "$TMP/nonexistent.jsonl")"
-check silent "missing session_id"                 '{"transcript_path":"/tmp/x.jsonl"}'
-check silent "empty object"                       '{}'
-check silent "malformed json (no stderr leak)"    'not json at all'
-check silent "empty stdin"                        ''
+check silent "missing transcript file"              "$(payload "$TMP/nope.jsonl" /p/h)"
+check silent "missing cwd"                          '{"transcript_path":"/tmp/x.jsonl"}'
+check silent "empty object"                         '{}'
+check silent "malformed json (no stderr leak)"      'not json at all'
+check silent "empty stdin"                          ''
 
 echo
-echo "  per-session cap — fires at most once"
-check fire   "first stop of a new session"        "$(payload s-cap "$TMP/work.jsonl")"
-check silent "second stop, same session"          "$(payload s-cap "$TMP/work.jsonl")"
-check fire   "different session, unaffected"      "$(payload s-cap2 "$TMP/work.jsonl")"
-
-echo
-echo "  state markers stay bounded"
-# One marker per session, never read again after the session ends — without pruning the
-# directory grows forever.
-touch -t 202001010000 "$SECOND_BRAIN_STATE_DIR/ancient.fired"
-touch "$SECOND_BRAIN_STATE_DIR/recent.fired"
-printf '%s' "$(payload s-prune "$TMP/work.jsonl")" | bash "$HOOK" >/dev/null 2>&1
-if [ ! -e "$SECOND_BRAIN_STATE_DIR/ancient.fired" ] && [ -e "$SECOND_BRAIN_STATE_DIR/recent.fired" ]; then
-  printf '  ✅ %-42s %s\n' "old markers pruned, recent kept" "ok"
-  pass=$((pass + 1))
-else
-  printf '  ❌ %-42s\n' "old markers pruned, recent kept"
-  fail=$((fail + 1))
-fi
+echo "  cooldown is per PROJECT, not per session"
+# v0.4's session-keyed cap failed here: a background job and the interactive session have
+# different session ids, so one stretch of work fired more than once.
+check arm    "first edit burst in a project"        "$(payload "$TMP/edits.jsonl" /p/shared)"
+check silent "same project again (throttled)"       "$(payload "$TMP/edits.jsonl" /p/shared)"
+check silent "same project, different session"      "$(payload "$TMP/edits.jsonl" /p/shared)"
+check arm    "a different project is unaffected"    "$(payload "$TMP/edits.jsonl" /p/other)"
 
 echo
 echo "  kill switch"
 SECOND_BRAIN_HOOK_DISABLED=1 \
-  check silent "SECOND_BRAIN_HOOK_DISABLED=1"     "$(payload s-off "$TMP/work.jsonl")"
+  check silent "SECOND_BRAIN_HOOK_DISABLED=1"       "$(payload "$TMP/edits.jsonl" /p/off)"
 
 echo
-echo "  emitted payload is valid Stop-hook JSON"
-out=$(printf '%s' "$(payload s-json "$TMP/work.jsonl")" | bash "$HOOK" 2>/dev/null)
-if printf '%s' "$out" | jq -e '.decision == "block" and (.reason | length > 0)' >/dev/null 2>&1; then
-  printf '  ✅ %-42s %s\n' "decision=block with non-empty reason" "ok"
-  pass=$((pass + 1))
-else
-  printf '  ❌ %-42s got: %.120s\n' "decision=block with non-empty reason" "$out"
-  fail=$((fail + 1))
-fi
+echo "  output contract — silent channel only"
+out=$(printf '%s' "$(payload "$TMP/edits.jsonl" /p/json)" | bash "$HOOK" 2>/dev/null)
+if printf '%s' "$out" | jq -e '.hookSpecificOutput.hookEventName == "PostToolUse"
+                               and (.hookSpecificOutput.additionalContext | length > 0)' >/dev/null 2>&1
+then ok "additionalContext on PostToolUse"
+else bad "additionalContext on PostToolUse" "got: $(printf '%.120s' "$out")"; fi
+
+# The v0.4 failure, encoded as an assertion: `decision`/`reason` is the channel Claude Code
+# renders to the user. If either ever reappears, the silent design has regressed.
+if printf '%s' "$out" | jq -e 'has("decision") or has("reason") or has("systemMessage")' >/dev/null 2>&1
+then bad "no user-visible channel emitted" "decision/reason/systemMessage present"
+else ok "no user-visible channel emitted"; fi
+
+echo
+echo "  state markers stay bounded"
+touch -t 202001010000 "$SECOND_BRAIN_STATE_DIR/ancient.fired"
+printf '%s' "$(payload "$TMP/edits.jsonl" /p/prune)" | bash "$HOOK" >/dev/null 2>&1
+if [ ! -e "$SECOND_BRAIN_STATE_DIR/ancient.fired" ]
+then ok "old markers pruned"
+else bad "old markers pruned"; fi
 
 echo
 echo "── $pass passed, $fail failed"

@@ -105,11 +105,13 @@ Then confirm to the user with the final saved location, and surface anything lef
 
 ## Triggers
 
-- **Automatic (v0.4)** — a `Stop` hook (`hooks/detect-on-stop.sh`) fires once per session when
-  the session contained real development work, and instructs you to run this workflow. The hook
-  only detects that *work happened*; it makes no claim about value. Treat it as a prompt to
-  judge, never as evidence for `should_document: true` — the gate and the interruption policy
-  decide exactly as they would otherwise, and silence remains the most common outcome.
+- **Automatic (v0.4.1)** — a `PostToolUse` hook (`hooks/detect-on-edit.sh`) injects a note into
+  your context, throttled per project, once a session has accumulated real editing work. It is
+  invisible to the user, so acting on it is entirely your choice — and choosing silence leaves
+  no trace. Act on it at a natural stopping point, never mid-task. The hook only detects that
+  *work happened*; it makes no claim about value. Treat it as a prompt to judge, never as
+  evidence for `should_document: true` — the gate and the interruption policy decide exactly as
+  they would otherwise, and silence remains the most common outcome. Never mention the note.
 - **Manual** — `/document` runs the same workflow on demand, even for older work in the
   conversation. This sets `explicit_request: true`, which bypasses the interruption gates
   (approval to write is still required).

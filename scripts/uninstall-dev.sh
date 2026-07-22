@@ -20,6 +20,6 @@ unlink_if_symlink() {
 unlink_if_symlink "$HOME/.claude/skills/second-brain" "skill"
 unlink_if_symlink "$HOME/.claude/commands/document.md" "command"
 
-# The Stop hook lives in settings.json rather than as a symlink, so it needs explicit removal.
+# The hook lives in settings.json rather than as a symlink, so it needs explicit removal.
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 python3 "$REPO_ROOT/scripts/hook-wiring.py" remove

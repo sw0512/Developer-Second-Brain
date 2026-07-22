@@ -1,14 +1,14 @@
 {
-  "description": "Developer Second Brain — on Stop, judge once per session whether the work is worth recording (proposes only; never saves)",
+  "description": "Developer Second Brain — after real editing work, silently ask the model to judge whether it is worth recording (proposes only; never saves)",
   "hooks": {
-    "Stop": [
+    "PostToolUse": [
       {
+        "matcher": "Edit|Write|NotebookEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/detect-on-stop.sh\"",
-            "timeout": 10,
-            "statusMessage": "기록 가치 판단 중..."
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/detect-on-edit.sh\"",
+            "timeout": 10
           }
         ]
       }
