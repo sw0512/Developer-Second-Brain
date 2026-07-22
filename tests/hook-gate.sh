@@ -61,6 +61,33 @@ check() {
 
 payload() { printf '{"session_id":"%s","transcript_path":"%s","stop_hook_active":%s}' "$1" "$2" "${3:-false}"; }
 
+# Real transcripts are not uniform: they interleave non-message bookkeeping (snapshots, hook
+# records, attachments) with messages, and a message's content may be a bare string rather than
+# a content-block array. Both shapes broke earlier versions of the gate, so both are fixtures.
+mixed_transcript() {
+  python3 - "$1" <<'PY'
+import json, sys
+with open(sys.argv[1], "w") as f:
+    for i in range(40):                      # bookkeeping lines — carry no .message
+        f.write(json.dumps({"type": "snapshot", "uuid": f"u{i}", "cwd": "/tmp"}) + "\n")
+    for i in range(5):                       # only 5 real messages, one of them an edit
+        block = ({"type": "tool_use", "name": "Edit"} if i == 2
+                 else {"type": "text", "text": "hi"})
+        f.write(json.dumps({"message": {"content": [block]}}) + "\n")
+PY
+}
+
+string_content_transcript() {
+  python3 - "$1" <<'PY'
+import json, sys
+with open(sys.argv[1], "w") as f:
+    for i in range(30):
+        f.write(json.dumps({"message": {"content": "plain string content"}}) + "\n")
+    for _ in range(3):
+        f.write(json.dumps({"message": {"content": [{"type": "tool_use", "name": "Edit"}]}}) + "\n")
+PY
+}
+
 echo "hook gate — fires only on real development work"
 
 jsonl "$TMP/work.jsonl"     40 Read 5 Edit    # substantial session, one real edit
@@ -79,6 +106,14 @@ echo "  negative — no work, or not enough of it"
 check silent "conversation only, zero tools"      "$(payload s-qa   "$TMP/qa.jsonl")"
 check silent "read-only exploration"              "$(payload s-ro   "$TMP/readonly.jsonl")"
 check silent "edit but session too short"         "$(payload s-sh   "$TMP/short.jsonl")"
+
+echo
+echo "  real-transcript shapes"
+mixed_transcript "$TMP/mixed.jsonl"
+string_content_transcript "$TMP/strcontent.jsonl"
+# 45 raw lines but only 5 messages: counting lines instead of messages would wrongly fire here.
+check silent "bookkeeping lines don't count as messages" "$(payload s-mix "$TMP/mixed.jsonl")"
+check fire   "string-typed message content survives"     "$(payload s-str "$TMP/strcontent.jsonl")"
 
 echo
 echo "  safety — must never break the session"

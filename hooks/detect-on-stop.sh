@@ -38,7 +38,7 @@ trap 'exit 0' ERR
 
 MIN_EDITS=1        # at least one file actually changed — the strongest "work happened" signal
 MIN_BASH=8         # ...or heavy shell use, which is what pure-debugging sessions look like
-MIN_TRANSCRIPT=12  # assistant/user message count; filters out trivially short exchanges
+MIN_MESSAGES=12    # conversation messages; filters out trivially short exchanges
 
 STATE_DIR="${SECOND_BRAIN_STATE_DIR:-$HOME/.claude/second-brain-state}"
 
@@ -72,28 +72,32 @@ marker="$STATE_DIR/${session_id}.fired"
 # --- Cheap work gate ----------------------------------------------------------------------
 # Count tool calls in the JSONL transcript. This is a "did work happen" question, not a
 # "was it valuable" question — value is the engine's job.
-counts=$(jq -rs '
-  [ .[]
-    | select(type == "object")
-    | .message?.content? // []
-    | if type == "array" then .[] else empty end
-    | select(type == "object" and .type == "tool_use")
-    | .name
-  ] as $tools
-  | {
-      edits: ([ $tools[] | select(. == "Edit" or . == "Write" or . == "NotebookEdit") ] | length),
-      bash:  ([ $tools[] | select(. == "Bash") ] | length),
-      msgs:  length
-    }
-  | "\(.edits) \(.bash) \(.msgs)"
-' "$transcript" 2>/dev/null) || exit 0
+#
+# Streamed deliberately (no `jq -s`). Slurping a long session's transcript costs real memory —
+# a 149MB transcript measured at ~516MB RSS — and this runs on every single Stop. Per-line
+# streaming keeps it flat regardless of session length.
+#
+# Messages are counted as entries carrying `.message`, NOT as raw lines: a transcript also
+# holds snapshots, hook records and attachments (564 raw lines vs 309 real messages in a
+# sample session), so line count would silently inflate the gate past what it claims to check.
+counts=$(jq -r '
+  select(.message != null)
+  | "MSG",
+    ( .message.content? // []
+      | if type == "array" then .[] else empty end
+      | select(type == "object" and .type == "tool_use")
+      | .name )
+' "$transcript" 2>/dev/null | awk '
+  $0 == "MSG" { m++; next }
+  $0 == "Edit" || $0 == "Write" || $0 == "NotebookEdit" { e++; next }
+  $0 == "Bash" { b++ }
+  END { printf "%d %d %d", e + 0, b + 0, m + 0 }
+') || exit 0
 
-read -r edits bash_calls _msgs <<< "$counts"
-msgs=$(wc -l < "$transcript" 2>/dev/null | tr -d ' ')
-
+read -r edits bash_calls msgs <<< "$counts"
 : "${edits:=0}"; : "${bash_calls:=0}"; : "${msgs:=0}"
 
-[ "$msgs" -ge "$MIN_TRANSCRIPT" ] || exit 0
+[ "$msgs" -ge "$MIN_MESSAGES" ] || exit 0
 [ "$edits" -ge "$MIN_EDITS" ] || [ "$bash_calls" -ge "$MIN_BASH" ] || exit 0
 
 # --- Fire ---------------------------------------------------------------------------------

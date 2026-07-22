@@ -14,8 +14,12 @@ trigger. Pulled ahead of v0.3 (Notion): syncing a vault is pointless while the v
 empty.
 
 - `hooks/detect-on-stop.sh` — `Stop` hook. Cheap gate (edits ≥1 **or** Bash ≥8, **and**
-  transcript ≥12 messages) → `decision: block` handing the model an instruction to run the
-  engine. Fires at most once per session.
+  ≥12 messages) → `decision: block` handing the model an instruction to run the engine.
+  Fires at most once per session.
+- Gate reads the transcript against its **real** shape, verified on live sessions: counts
+  entries carrying `.message` rather than raw lines (a sample session had 564 lines vs 309
+  messages — line counting silently loosened the gate), tolerates string-typed `content`, and
+  streams instead of slurping (149MB transcript: 516MB → 3.3MB RSS; 2MB transcript: 0.05s).
 - **Separation of concerns held**: the hook answers only "did work happen?", never "is it
   valuable?" — value stays solely in `references/`. Its instruction says so explicitly, so a
   firing hook is never read as evidence for `should_document: true`.
@@ -26,7 +30,7 @@ empty.
   `~/.claude/settings.json` for symlink dev installs (idempotent, backs up, preserves
   unrelated hooks, refuses malformed JSON). Wired by `install-dev.sh`, removed by
   `uninstall-dev.sh`.
-- `tests/hook-gate.sh` — 16 automated assertions over the gate and its safety guards. First
+- `tests/hook-gate.sh` — 18 automated assertions over the gate and its safety guards. First
   automated tests in the project; `fixtures/` still cover engine judgment by hand.
 - Off switches: `SECOND_BRAIN_HOOK_DISABLED=1`, `install-dev.sh --no-hook`.
 - `SKILL.md` gains a Triggers section covering both the hook and `/document`.
