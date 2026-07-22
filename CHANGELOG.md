@@ -31,6 +31,18 @@ empty.
 - Off switches: `SECOND_BRAIN_HOOK_DISABLED=1`, `install-dev.sh --no-hook`.
 - `SKILL.md` gains a Triggers section covering both the hook and `/document`.
 
+### Added — document quality rules (from dogfooding a saved troubleshooting doc)
+- `references/writing-rules.md` — how a saved document is written, so it stays actionable
+  without the originating conversation: self-contained snippets (R1), rationale for every
+  tuned number including an honest "tuned by eye" (R2), explicit coupling between co-tuned
+  values (R3), consistent naming (R4), no invented detail (R5).
+- **Self-review pass** as workflow step 6 in `SKILL.md` — after writing, re-read the file
+  against the writing-rules checklist and fix failures before confirming the save. Reading the
+  source repo to fill in real constant values is the intended way to pass, not a shortcut.
+- Template reminders inline where they bite: `troubleshooting.md` gains a constants block plus
+  a "이 숫자들은 어떻게 정했나" section; `adr.md` gains "확정한 설정값"; `study-note.md` and
+  `til.md` gain snippet-value hints.
+
 ### Added — v0.2 Documentation Detection Engine (per docs/design/v0.2-detection-engine.md)
 - Evidence / Assessment separation with the purpose-independence invariant: Evidence holds
   observed, purpose-independent facts; the derived `documentation` Assessment holds the

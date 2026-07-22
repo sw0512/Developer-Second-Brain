@@ -78,12 +78,25 @@ adjust and re-propose.
 - Load `templates/<type>.md` relative to this skill (e.g. `templates/troubleshooting.md`).
 - Fill it in **Korean** from the actual conversation. Be concrete: real errors, decisions,
   trade-offs. Do not invent details.
+- Apply `references/writing-rules.md` — self-contained snippets (every constant shows its
+  value), every tuned number carries meaning + origin + failure range, coupled values marked
+  as coupled, consistent naming. Read the source repo to fill in real values when it is
+  reachable; mark `(미확인)` when it is not.
 - Record the **Evidence** and this documentation **Assessment** into the document's frontmatter
   (the template provides `evidence:` and `assessment:` blocks). Store only the `documentation`
   Assessment — other purposes are computed later, not now.
 - Persist by following `references/vault-layout.md`, the **single source of truth** for where
   documents live and how they are named. Do not restate storage paths or filename rules here.
-- Confirm to the user with the final saved location.
+
+### 6. Self-review, then confirm  (pipeline stage ⑦)
+
+Re-read the file you just wrote and run the **self-review pass** table in
+`references/writing-rules.md`. Fix every failing row yourself — this pass is not delegated to
+the user and not skipped because the draft "looks complete". A document is finished when it is
+actionable without the conversation that produced it, not when the sections are filled.
+
+Then confirm to the user with the final saved location, and surface anything left as
+`(미확인)` so they can supply it.
 
 ## Language convention
 
