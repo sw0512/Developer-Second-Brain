@@ -75,11 +75,14 @@ def main() -> None:
     if action == "add":
         if len(sys.argv) < 3:
             sys.exit("usage: hook-wiring.py add <script-path>")
+        # Invoked through `bash <path>` rather than relying on the file's executable bit, so
+        # the hook still runs if a checkout or copy drops the permission. Matches how the
+        # first-party plugins register their hooks.
         script = str(Path(sys.argv[2]).resolve())
         remaining.append({
             "hooks": [{
                 "type": "command",
-                "command": script,
+                "command": f'bash "{script}"',
                 "timeout": 10,
                 "statusMessage": "기록 가치 판단 중...",
             }]

@@ -69,6 +69,12 @@ mkdir -p "$STATE_DIR" 2>/dev/null || exit 0
 marker="$STATE_DIR/${session_id}.fired"
 [ -e "$marker" ] && exit 0
 
+# Markers are per-session and never referenced again once the session ends, so without this
+# they accumulate forever — one empty file per session, indefinitely. Prune on write: cheap,
+# self-healing, and no separate cleanup step for the user to remember. 30 days is far beyond
+# any live session while keeping the directory bounded.
+find "$STATE_DIR" -name '*.fired' -mtime +30 -delete 2>/dev/null || true
+
 # --- Cheap work gate ----------------------------------------------------------------------
 # Count tool calls in the JSONL transcript. This is a "did work happen" question, not a
 # "was it valuable" question — value is the engine's job.

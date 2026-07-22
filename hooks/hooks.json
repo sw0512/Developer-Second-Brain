@@ -1,11 +1,12 @@
 {
+  "description": "Developer Second Brain — on Stop, judge once per session whether the work is worth recording (proposes only; never saves)",
   "hooks": {
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/detect-on-stop.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/detect-on-stop.sh\"",
             "timeout": 10,
             "statusMessage": "기록 가치 판단 중..."
           }

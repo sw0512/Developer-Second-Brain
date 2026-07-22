@@ -30,8 +30,12 @@ empty.
   `~/.claude/settings.json` for symlink dev installs (idempotent, backs up, preserves
   unrelated hooks, refuses malformed JSON). Wired by `install-dev.sh`, removed by
   `uninstall-dev.sh`.
-- `tests/hook-gate.sh` — 18 automated assertions over the gate and its safety guards. First
+- `tests/hook-gate.sh` — 19 automated assertions over the gate and its safety guards. First
   automated tests in the project; `fixtures/` still cover engine judgment by hand.
+- Session markers are pruned after 30 days on each fire — one file per session accumulated
+  indefinitely otherwise.
+- Hook is invoked as `bash <path>` (matching the first-party plugins) so a dropped executable
+  bit cannot silently break it.
 - Off switches: `SECOND_BRAIN_HOOK_DISABLED=1`, `install-dev.sh --no-hook`.
 - `SKILL.md` gains a Triggers section covering both the hook and `/document`.
 

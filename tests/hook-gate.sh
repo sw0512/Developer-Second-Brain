@@ -131,6 +131,21 @@ check silent "second stop, same session"          "$(payload s-cap "$TMP/work.js
 check fire   "different session, unaffected"      "$(payload s-cap2 "$TMP/work.jsonl")"
 
 echo
+echo "  state markers stay bounded"
+# One marker per session, never read again after the session ends — without pruning the
+# directory grows forever.
+touch -t 202001010000 "$SECOND_BRAIN_STATE_DIR/ancient.fired"
+touch "$SECOND_BRAIN_STATE_DIR/recent.fired"
+printf '%s' "$(payload s-prune "$TMP/work.jsonl")" | bash "$HOOK" >/dev/null 2>&1
+if [ ! -e "$SECOND_BRAIN_STATE_DIR/ancient.fired" ] && [ -e "$SECOND_BRAIN_STATE_DIR/recent.fired" ]; then
+  printf '  ✅ %-42s %s\n' "old markers pruned, recent kept" "ok"
+  pass=$((pass + 1))
+else
+  printf '  ❌ %-42s\n' "old markers pruned, recent kept"
+  fail=$((fail + 1))
+fi
+
+echo
 echo "  kill switch"
 SECOND_BRAIN_HOOK_DISABLED=1 \
   check silent "SECOND_BRAIN_HOOK_DISABLED=1"     "$(payload s-off "$TMP/work.jsonl")"
