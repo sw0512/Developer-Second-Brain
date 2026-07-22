@@ -43,6 +43,15 @@ link() {
 link "$SKILL_SRC" "$SKILL_LINK" "skill"
 link "$CMD_SRC"   "$CMD_LINK"   "command (/document)"
 
+# The Stop hook (v0.4) cannot be symlinked — it has to be registered in settings.json. Plugin
+# installs pick it up from hooks/hooks.json; the dev install wires it here. Opt out with
+# --no-hook, or disable at runtime with SECOND_BRAIN_HOOK_DISABLED=1.
+if [ "${1:-}" = "--no-hook" ]; then
+  echo "⏭  Stop hook skipped (--no-hook)."
+else
+  python3 "$REPO_ROOT/scripts/hook-wiring.py" add "$REPO_ROOT/hooks/detect-on-stop.sh"
+fi
+
 echo
-echo "Done. Restart Claude Code and both the 'second-brain' skill and /document are live."
-echo "Because these are symlinks, further edits in this repo take effect on the next run."
+echo "Done. Restart Claude Code — the 'second-brain' skill, /document, and the Stop hook are live."
+echo "Because the skill and command are symlinks, further edits take effect on the next run."

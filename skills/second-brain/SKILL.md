@@ -103,10 +103,16 @@ Then confirm to the user with the final saved location, and surface anything lef
 - **Prompts, reasoning, filenames, and this skill: English.**
 - **Everything the user reads and every saved document: Korean.**
 
-## Manual trigger
+## Triggers
 
-The user can also invoke this explicitly with the `/document` command, which runs the same
-workflow on demand — even for older work in the conversation.
+- **Automatic (v0.4)** — a `Stop` hook (`hooks/detect-on-stop.sh`) fires once per session when
+  the session contained real development work, and instructs you to run this workflow. The hook
+  only detects that *work happened*; it makes no claim about value. Treat it as a prompt to
+  judge, never as evidence for `should_document: true` — the gate and the interruption policy
+  decide exactly as they would otherwise, and silence remains the most common outcome.
+- **Manual** — `/document` runs the same workflow on demand, even for older work in the
+  conversation. This sets `explicit_request: true`, which bypasses the interruption gates
+  (approval to write is still required).
 
 ## Guiding question for every extension
 

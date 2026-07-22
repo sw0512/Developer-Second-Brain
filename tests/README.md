@@ -4,6 +4,17 @@ The Detection Engine is prompt-driven and non-deterministic, so it is evaluated 
 **labeled fixtures**, not unit tests. This directory is a first-class part of the project
 (v0.2), not an afterthought.
 
+## Two layers, two kinds of test
+
+| | What it tests | How |
+|---|---|---|
+| `fixtures/` | The engine's **judgment** — is this worth recording? | labeled fixtures, scored by hand |
+| `hook-gate.sh` | The Stop hook's **gate** — is it worth asking the engine at all? | `./tests/hook-gate.sh`, automated |
+
+The hook gate is deterministic shell, so it gets real assertions. Run it after touching
+`hooks/detect-on-stop.sh` — it covers the safety guards (loop prevention, malformed input,
+per-session cap) that, if broken, would hang or spam a user's session.
+
 ## What a fixture is
 
 Each file in `fixtures/` is a short, realistic conversation plus a **gold label**, split — per

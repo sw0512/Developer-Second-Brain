@@ -9,3 +9,7 @@
 
 # Local vault (in case a user points SECOND_BRAIN_VAULT into the repo)
 /vault/
+
+# Python bytecode
+__pycache__/
+*.pyc
