@@ -17,7 +17,10 @@
 - 유형별 Notion DB 매핑, 저장소 추상화(local ↔ Notion) 확정.
 
 ## v0.4 — Hooks  ✅ (현재)
-- `Stop` 훅으로 자동 "기록할까요?" 판단 부착 (`hooks/detect-on-stop.sh`).
+- `PostToolUse` 훅으로 자동 "기록할까요?" 판단 부착 (`hooks/detect-on-edit.sh`).
+- v0.4.0의 `Stop` + `decision:block` 방식은 폐기 — 차단 사유가 사용자 화면에 렌더링돼
+  "조용한 경로"가 구조적으로 존재하지 않았음. `Stop`은 `hookSpecificOutput` union 멤버가
+  아니라 `additionalContext`를 쓸 수 없다는 것이 근본 원인.
 - 훅은 "작업이 일어났나"만 값싸게 판정하고, 가치 판단은 `references/`가 단독으로 수행.
 - 여전히 자동 저장은 하지 않음 (제안까지만 자동).
 - 순서 변경: v0.3(Notion)보다 먼저 진행. Notion 동기화는 문서가 쌓여야 의미가 있는데,

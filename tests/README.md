@@ -9,11 +9,17 @@ The Detection Engine is prompt-driven and non-deterministic, so it is evaluated 
 | | What it tests | How |
 |---|---|---|
 | `fixtures/` | The engine's **judgment** — is this worth recording? | labeled fixtures, scored by hand |
-| `hook-gate.sh` | The Stop hook's **gate** — is it worth asking the engine at all? | `./tests/hook-gate.sh`, automated |
+| `hook-gate.sh` | The hook's **gate** — is it worth asking the engine at all? — and its **output contract** | `./tests/hook-gate.sh`, automated |
 
 The hook gate is deterministic shell, so it gets real assertions. Run it after touching
-`hooks/detect-on-stop.sh` — it covers the safety guards (loop prevention, malformed input,
-per-session cap) that, if broken, would hang or spam a user's session.
+`hooks/detect-on-edit.sh` — it covers the safety guards (malformed input, per-project cooldown,
+marker pruning) that, if broken, would spam or slow a user's session.
+
+One assertion is there for a specific reason: **the hook must emit no user-visible channel**
+(`decision` / `reason` / `systemMessage`). The v0.4 Stop-hook design was correct and still
+unusable, because Claude Code renders a blocked Stop's `reason` to the user — the instruction
+telling the model to stay quiet was printed on screen every time. That is now a test, not an
+intention.
 
 ## What a fixture is
 

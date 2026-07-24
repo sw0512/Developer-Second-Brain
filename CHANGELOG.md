@@ -6,6 +6,33 @@ the roadmap versions in `docs/roadmap.md`.
 
 ## [Unreleased]
 
+### Changed — v0.4.1: the trigger goes silent
+v0.4 shipped and was reverted within a minute of real use. The Stop hook reached a correct
+proposal — detection was never the failure. The failure was the channel: Claude Code renders a
+blocked Stop's `reason` to the user, so the instruction telling the model to stay quiet was
+itself printed on screen at every fire. There was no silent path to have.
+
+Structural, not tunable: `Stop` is not a member of Claude Code's `hookSpecificOutput` union, so
+a Stop hook cannot use `additionalContext` — the channel that reaches the model without
+reaching the user. `PostToolUse` is a member.
+
+- `hooks/detect-on-stop.sh` → `hooks/detect-on-edit.sh`: `PostToolUse` on
+  `Edit|Write|NotebookEdit`, emitting `hookSpecificOutput.additionalContext`. Nothing is
+  rendered to the user; acting on the note is the model's choice and silence leaves no trace.
+- Cooldown is keyed on the **project path**, not `session_id`. The second v0.4 defect: one
+  stretch of work spans several sessions (a background job and the interactive session have
+  different ids), so a per-session cap still fired repeatedly — two markers, one piece of work.
+  Sessions sharing a working directory now share one 6-hour cooldown.
+- `MIN_EDITS` 1 → 3, since `PostToolUse` fires per edit and one stray edit should not arm it.
+  `MIN_BASH` dropped: the matcher already scopes this to editing work.
+- Cooldown is checked before the transcript scan, so an armed project costs one `stat` (0.05s)
+  instead of a full scan (0.08s on 2MB) at every subsequent edit.
+- `hook-wiring.py` sweeps both `PostToolUse` and `Stop`, so upgrading removes the v0.4
+  registration instead of leaving it firing alongside the new one.
+- `tests/hook-gate.sh` — 20 assertions. New: **the output must contain no user-visible channel**
+  (`decision` / `reason` / `systemMessage`). The v0.4 failure is now an assertion, not a
+  design intention.
+
 ### Added — v0.4 Hooks: the missing trigger
 The detection engine was complete but effectively unreachable. A skill is model-invoked, and
 this one's trigger condition ("after you finish solving a problem") maps to no user request —
