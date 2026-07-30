@@ -82,6 +82,8 @@ adjust and re-propose.
   value), every tuned number carries meaning + origin + failure range, coupled values marked
   as coupled, consistent naming. Read the source repo to fill in real values when it is
   reachable; mark `(미확인)` when it is not.
+- Fill the `project` field from the repo you were working in, per the derivation rule in
+  `references/vault-layout.md`. The project is metadata; it never becomes a folder.
 - Record the **Evidence** and this documentation **Assessment** into the document's frontmatter
   (the template provides `evidence:` and `assessment:` blocks). Store only the `documentation`
   Assessment — other purposes are computed later, not now.

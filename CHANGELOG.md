@@ -6,6 +6,19 @@ the roadmap versions in `docs/roadmap.md`.
 
 ## [Unreleased]
 
+### Added — the project axis, as metadata
+Documents now carry a `project` field in their frontmatter. The vault keeps exactly one
+directory level (type); a project never becomes a folder. Landing this before the v0.3 Notion
+sync is deliberate — a project maps to a Notion property, so a folder would have to be
+flattened at sync time. Rationale in `docs/backlog.md` §1.
+
+- `project` added to all six templates, between `date` and the type-specific fields.
+- `references/vault-layout.md` is the single home for the rule: why it is a field and not a
+  folder, and how the name is derived (`git remote` origin repo name → repo/working directory
+  basename → `unknown`, name kept verbatim, never invented).
+- `SKILL.md` step 5 fills the field from that rule; `docs/architecture.md` metadata contract
+  and `examples/` sample updated to match.
+
 ### Changed — v0.4.1: the trigger goes silent
 v0.4 shipped and was reverted within a minute of real use. The Stop hook reached a correct
 proposal — detection was never the failure. The failure was the channel: Claude Code renders a

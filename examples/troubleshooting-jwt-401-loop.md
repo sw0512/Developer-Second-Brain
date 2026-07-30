@@ -1,6 +1,7 @@
 ---
 title: "JWT Refresh Token 재발급 시 401 무한루프 해결"
 date: 2026-07-06
+project: auth-server
 tags: [JWT, Spring Security, Refresh Token, 인증]
 
 # Evidence — observed, purpose-independent facts

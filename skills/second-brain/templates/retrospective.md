@@ -1,6 +1,7 @@
 ---
 title: "{{제목}}"
 date: {{YYYY-MM-DD}}
+project: {{repo-name}}
 scope: {{task | sprint | project}}
 tags: [{{기술, 키워드}}]
 

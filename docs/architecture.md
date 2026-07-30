@@ -40,7 +40,7 @@ Skill이 필요할 때 읽어들이는 판단 기준. Skill 본문을 얇게 유
 - `vault-layout.md` — 저장 위치·파일명 규칙.
 
 ### 3. Templates — `skills/second-brain/templates/`
-유형별 한국어 출력 형식. frontmatter에 `type/importance/tags` 등 메타데이터를 담아
+유형별 한국어 출력 형식. frontmatter에 `type/importance/tags/project` 등 메타데이터를 담아
 향후 Resume Score·Knowledge Graph의 기반이 됩니다.
 템플릿을 **스킬 폴더 안에 두어** 스킬이 자기 완결적이 됩니다 — `~/.claude/skills/`로
 심링크 하나만 걸어도 references·templates가 모두 따라오므로 즉시 테스트가 가능합니다.
@@ -68,7 +68,9 @@ v0.1에서는 비활성 (자리만 확보).
 2. **Storage layer (저장)** — 문서가 어디에 사는가. (현재 로컬 vault, `vault-layout.md`가 유일한 결합점)
 3. **Read side (읽기·생성)** — 쌓인 문서를 읽어 새 산출물을 만든다. (리포트·면접 준비 등, 아직 없음)
 
-문서 frontmatter의 메타데이터(`type/importance/tags/date`)가 세 축을 잇는 계약입니다.
+문서 frontmatter의 메타데이터(`type/importance/tags/date/project`)가 세 축을 잇는 계약입니다.
+프로젝트 축도 이 계약의 일부입니다 — 디렉터리 계층이 아니라 `project` 필드로 표현하며,
+그 규칙과 근거는 `vault-layout.md` 한 곳에 있습니다.
 
 | 미래 기능 | 어디에 붙나 | 왜 재구조화가 불필요한가 |
 |-----------|-------------|--------------------------|
