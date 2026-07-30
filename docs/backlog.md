@@ -2,12 +2,13 @@
 
 로드맵 버전에 아직 배정되지 않았거나, 배정은 됐지만 착수 전인 확정 작업들을 기록합니다.
 `docs/roadmap.md`가 "어떤 버전에 무엇이 들어가는가"라면, 여기는 "합의는 끝났고 아직 안 한 것"의 목록입니다.
+완료된 항목은 지우지 않고 **상태만 완료로 바꿔** 남깁니다 — 결정의 근거가 코드에는 남지 않기 때문입니다.
 
 ---
 
 ## 1. 프로젝트 축을 폴더가 아닌 메타데이터로 추가
 
-- **상태**: 합의 완료, 착수 전
+- **상태**: 완료 (2026-07-30) — 아래 작업 항목 4건 모두 반영. 근거는 기록용으로 남긴다.
 - **결정일**: 2026-07-26
 - **관련 버전**: v0.3 (Notion 연동 시 property로 매핑되므로 그 전에 필드가 존재해야 함)
 
@@ -32,13 +33,13 @@ vault 디렉터리 구조는 지금의 "타입 = 폴더, 예외 없음" 1단 규
 
 ### 작업 항목
 
-- [ ] 템플릿 6종 frontmatter에 `project` 추가
+- [x] 템플릿 6종 frontmatter에 `project` 추가
       (`troubleshooting`, `adr`, `til`, `retrospective`, `resume-material`, `study-note`)
-- [ ] `references/vault-layout.md`에 "프로젝트는 폴더가 아니라 메타데이터" 근거 한 단락 추가
+- [x] `references/vault-layout.md`에 "프로젝트는 폴더가 아니라 메타데이터" 근거 한 단락 추가
       — 이 규칙의 단일 authoritative 위치 (원칙 5, one concept one home)
-- [ ] 프로젝트 이름 추출 규칙 명시: `git remote` origin의 repo 이름 → 없으면 작업 디렉터리명
+- [x] 프로젝트 이름 추출 규칙 명시: `git remote` origin의 repo 이름 → 없으면 작업 디렉터리명
       → 둘 다 애매하면 `unknown`
-- [ ] `docs/architecture.md`의 vault 설명이 frontmatter 스키마를 언급한다면 동기화
+- [x] `docs/architecture.md`의 vault 설명이 frontmatter 스키마를 언급한다면 동기화
       (원칙 5, documentation mirrors architecture)
 
 ### 정하지 않은 것

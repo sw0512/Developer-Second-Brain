@@ -15,8 +15,9 @@
 ## v0.3 — Notion Integration
 - Notion MCP 연동. vault → Notion Developer Wiki 동기화.
 - 유형별 Notion DB 매핑, 저장소 추상화(local ↔ Notion) 확정.
-- frontmatter에 `project` 필드 추가 (폴더 계층이 아닌 메타데이터). Notion에서 property로
-  매핑되므로 동기화보다 먼저 들어가야 함 — 상세는 `docs/backlog.md` 1번.
+- frontmatter `project` 필드 (폴더 계층이 아닌 메타데이터) — ✅ 선반영 (2026-07-30).
+  Notion에서 property로 매핑되므로 동기화보다 먼저 넣었음. 규칙은 `vault-layout.md`,
+  근거는 `docs/backlog.md` 1번. Notion DB의 Project property는 이 필드를 그대로 쓴다.
 
 ## v0.4 — Hooks  ✅ (현재)
 - `PostToolUse` 훅으로 자동 "기록할까요?" 판단 부착 (`hooks/detect-on-edit.sh`).

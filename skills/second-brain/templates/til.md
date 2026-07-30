@@ -1,6 +1,7 @@
 ---
 title: "{{제목}}"
 date: {{YYYY-MM-DD}}
+project: {{repo-name}}
 tags: [{{기술, 키워드}}]
 
 # Evidence — observed, purpose-independent facts (references/detection-rules.md)
