@@ -6,6 +6,26 @@ the roadmap versions in `docs/roadmap.md`.
 
 ## [Unreleased]
 
+### Added — `how-to`, the seventh type, and a closed type set
+A real run classified four documents as `reference` — a type that has never existed. The
+documents were procedures (extracting an API contract from backend source, running on MSW until
+the backend deployed, wiring an OAuth data layer), and none of the six types fit: nothing broke,
+so not `troubleshooting`; the comparison of alternatives was not the point, so not `adr`; and
+they record what *this* project did rather than explaining a technology, so not `study-note`.
+
+Two defects, fixed separately. The gap is real, so `how-to` is now a type. But inventing one at
+write time is its own failure — `vault-layout.md` creates the folder on demand, so an invented
+name becomes a permanent folder with no template and no reader.
+
+- `templates/how-to.md`: 상황 → 절차 → 확인 → 되돌리기/제거 → 주의점 → 배운 점. "되돌리기" is
+  there because a procedure that stands up temporary scaffolding (a mock, a dev proxy) is not
+  finished until the note says when to take it down.
+- `references/doc-types.md` states the table is a closed set, and adds tie-breakers against
+  `troubleshooting` (did something break?), `study-note` (whose knowledge is it?), and `adr`
+  (is the choice the point, or one line inside a procedure?).
+- `references/vault-layout.md` records *why* the set must be closed — the folder-on-demand rule
+  is what makes an invented type permanent.
+
 ### Added — the project axis, as metadata
 Documents now carry a `project` field in their frontmatter. The vault keeps exactly one
 directory level (type); a project never becomes a folder. Landing this before the v0.3 Notion

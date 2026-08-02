@@ -17,6 +17,7 @@ not exist (`mkdir -p`).
 ```
 ~/DeveloperSecondBrain/
 ├── troubleshooting/
+├── how-to/
 ├── adr/
 ├── til/
 ├── retrospective/
@@ -45,6 +46,10 @@ til/2026-07-06-git-restore-staged.md
 The folder name is **always identical to the type name** — no exceptions, no lookup table.
 A document of type `<type>` is stored in `<vault-root>/<type>/`. New types added later follow
 the same rule automatically.
+
+The type itself must come from the table in `doc-types.md` — that set is closed. Because this
+rule creates the folder on demand, a type invented at write time silently becomes a permanent
+folder that no template, no reader, and no future sync knows about.
 
 ## Project is metadata, not a folder
 
