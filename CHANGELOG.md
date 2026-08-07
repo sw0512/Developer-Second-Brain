@@ -6,6 +6,44 @@ the roadmap versions in `docs/roadmap.md`.
 
 ## [Unreleased]
 
+### Added — the approval gate is enforced, not just declared
+`PROJECT_PRINCIPLES.md` §3.2 calls "never auto-save without user confirmation" the project's hard
+line, and §4 says the hook layer exists so automation can never bypass it. Nothing enforced that.
+`SKILL.md` step 4 told the model to propose and wait, and in a real 2026-08-04 session the model
+said "기록하겠습니다" and called `Write` in the same turn. What stopped it was Claude Code's own
+permission prompt — the harness, not this system.
+
+- `hooks/guard-vault-write.sh`: a `PreToolUse` hook on `Edit|Write|NotebookEdit`. One rule — the
+  target's filename must appear in assistant *text* preceding the most recent real user turn.
+  The anchor is the filename rather than the Korean proposal wording because wording is
+  paraphrasable and would put the proposal format in two homes, and because the model cannot
+  forge the thing that matters: a user turn *after* its own output.
+- Scope is new documents only (step 6's self-review edits the file it just wrote), vault paths
+  only, and the posture is fail-open — a missing `jq` must not make the vault unwritable. This
+  raises the floor; it is not the last line of defence.
+- Assistant tool inputs do not count as "shown", or a denied `Write` would become the evidence
+  that unlocks its own retry and the guard would fire once per session, ever.
+- Harness-authored text in role `user` entries does not count as a user turn. The one that
+  matters: pressing Esc on the proposed write leaves `[Request interrupted by user]`, a plain
+  text block indistinguishable in shape from a person typing "네 저장해줘" — so a *rejection*
+  would have unlocked the retry. Slash-command bookkeeping, `isMeta` notes, and
+  `<system-reminder>` blocks are stripped for the same reason. Stripping, not dropping the
+  entry: a real prompt typed alongside a slash command arrives in the same entry.
+- `SECOND_BRAIN_GUARD_DISABLED` is deliberately separate from `SECOND_BRAIN_HOOK_DISABLED`.
+  Silencing suggestions is not the same request as removing the gate.
+- Wired into both install paths (`hooks/hooks.json` for the plugin, `scripts/hook-wiring.py` for
+  the symlink dev install), always alongside the detection hook — installing the proposal path
+  without the enforcement path reproduces exactly the 2026-08-04 configuration.
+- `tests/vault-write-guard.sh`: 31 assertions covering the rule, every impostor approval, scope,
+  both kill switches, fail-open behaviour, the output contract, and a hand-rebuilt replay of the
+  session that motivated the guard.
+
+Verified by replaying that real session against the hook — cutting the transcript at each vault
+write and feeding the prefix back in. Three of five writes were denied, and the two surprises
+turned out to be documents whose paths the user had never been shown. The rule was right and the
+expectation was wrong; the trade-off is recorded in the vault ADR
+`2026-08-07-vault-write-guard-strict-approval-rule.md`.
+
 ### Added — `how-to`, the seventh type, and a closed type set
 A real run classified four documents as `reference` — a type that has never existed. The
 documents were procedures (extracting an API contract from backend source, running on MSW until

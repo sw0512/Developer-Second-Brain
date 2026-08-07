@@ -43,15 +43,20 @@ link() {
 link "$SKILL_SRC" "$SKILL_LINK" "skill"
 link "$CMD_SRC"   "$CMD_LINK"   "command (/document)"
 
-# The hook (v0.4.1, PostToolUse) cannot be symlinked — it has to be registered in settings.json. Plugin
-# installs pick it up from hooks/hooks.json; the dev install wires it here. Opt out with
-# --no-hook, or disable at runtime with SECOND_BRAIN_HOOK_DISABLED=1.
+# The hooks cannot be symlinked — they have to be registered in settings.json. Plugin installs
+# pick them up from hooks/hooks.json; the dev install wires them here. Two of them: the
+# PostToolUse detector (v0.4.1) that proposes, and the PreToolUse guard (v0.4.2) that refuses a
+# vault write the user was never shown. --no-hook skips both; at runtime they have separate kill
+# switches (SECOND_BRAIN_HOOK_DISABLED / SECOND_BRAIN_GUARD_DISABLED) because silencing
+# suggestions is a different request from dropping the approval gate.
 if [ "${1:-}" = "--no-hook" ]; then
-  echo "⏭  Hook skipped (--no-hook)."
+  echo "⏭  Hooks skipped (--no-hook)."
 else
-  python3 "$REPO_ROOT/scripts/hook-wiring.py" add "$REPO_ROOT/hooks/detect-on-edit.sh"
+  python3 "$REPO_ROOT/scripts/hook-wiring.py" add \
+    "$REPO_ROOT/hooks/detect-on-edit.sh" \
+    "$REPO_ROOT/hooks/guard-vault-write.sh"
 fi
 
 echo
-echo "Done. Restart Claude Code — the 'second-brain' skill, /document, and the hook are live."
+echo "Done. Restart Claude Code — the 'second-brain' skill, /document, and the hooks are live."
 echo "Because the skill and command are symlinks, further edits take effect on the next run."

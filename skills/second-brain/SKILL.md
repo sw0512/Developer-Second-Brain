@@ -73,6 +73,12 @@ from the Assessment (its explanation rendered from Evidence), so they cannot dis
 Wait for the user. If they decline, drop it and respect the cooldown. If they want changes,
 adjust and re-propose.
 
+**Do not call `Write` in the turn that shows this block** — not even after saying you will. That
+is the exact failure this workflow is written to prevent: announcing the save and performing it
+before the user can answer. The proposal ends your turn. If the user approved in their own words
+without a path in sight, restate the full 저장 위치 line and confirm once before writing.
+(`hooks/guard-vault-write.sh` enforces this, but it fails open — the rule lives here.)
+
 ### 5. Write the document (only after approval)  (handoff, pipeline stage ⑥)
 
 - Load `templates/<type>.md` relative to this skill (e.g. `templates/troubleshooting.md`).
